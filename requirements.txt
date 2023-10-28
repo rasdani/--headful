@@ -1,1 +1,6 @@
 pytest-playwright
+librosa
+pyaudio
+numpy
+openai
+python-dotenv
