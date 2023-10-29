@@ -4,3 +4,4 @@ pyaudio
 numpy
 openai
 python-dotenv
+opencv-python

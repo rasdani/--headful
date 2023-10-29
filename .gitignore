@@ -166,3 +166,5 @@ cython_debug/
 *.png
 *.wav
 *.mp3
+UIED/
+.DS_Store

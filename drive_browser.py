@@ -45,12 +45,16 @@ if __name__ == "__main__":
     with sync_playwright() as playwright:
         driver = WebDriver(playwright)
         driver.start_browser(headless=False)
-        driver.navigate_to("https://www.startpage.com/")
+        # URL = "https://www.startpage.com/"
+        # URL = "https://google.com/"
+        URL = "https://github.com/rasdani"
+        driver.navigate_to(URL)
         sleep(5)
         # driver.click_coordinates(650, 270)
-        driver.enter_text("Hello World")
-        driver.click_coordinates(880, 270)
+        # driver.enter_text("Hello World")
+        # driver.click_coordinates(880, 270)
         # driver.press_enter()
-        sleep(5)
-        driver.take_screenshot("example_screenshot.png")
+        # sleep(5)
+        # driver.take_screenshot("example_screenshot.png")
+        driver.take_screenshot("github_screenshot.png")
         driver.close_browser()
