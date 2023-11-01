@@ -1,59 +1,62 @@
 import pyaudio
 import wave
-import numpy as np
-import librosa
-import openai
-import os
-from dotenv import load_dotenv
+import webrtcvad
 
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# Configure audio recording parameters
-chunk = 1024  # Record in chunks of 1024 samples
-sample_format = pyaudio.paInt16  # 16 bits per sample
-channels = 1
-fs = 16000  # Record at 16000 samples per second
-duration = 5
-num_chunks = int(fs / chunk * duration)
+def main():
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=160)
+    vad = webrtcvad.Vad(3)  # Set aggressiveness mode, an integer between 0 and 3.
 
-p = pyaudio.PyAudio()
+    print("Speak into the microphone...")
 
-print('Recording...')
+    recording = False
+    frames = []  # List to hold audio frames
+    silence_frames = 0  # Counter for silent frames
 
-frames = []
-stream = p.open(format=sample_format, channels=channels, rate=fs, frames_per_buffer=chunk, input=True)
+    try:
+        while True:
+            buffer = stream.read(160, exception_on_overflow=False)
+            is_speech = vad.is_speech(buffer, sample_rate=16000)
 
-# while True:
-#     data = stream.read(chunk)
-#     frames.append(data)
-#     audio_data = np.frombuffer(data, dtype=np.int16)
-#     non_silent_intervals = librosa.effects.split(y=audio_data, top_db=30)  # Adjust top_db as needed
-#     if len(non_silent_intervals) == 0:
-#         break
+            if is_speech:
+                if not recording:
+                    print("Detected speech, start recording...")
+                    recording = True
+                    silence_frames = 0  # Reset silence frame counter
 
-for _ in range(num_chunks):
-    data = stream.read(chunk)
-    frames.append(data)
+                frames.append(buffer)
+            else:
+                if recording:
+                    silence_frames += 1
 
-print('Finished recording.')
+                    # If silence duration exceeds a threshold, stop recording
+                    if silence_frames > 30:  # For example, stop recording after 1 second of silence
+                        print("Speech ended, stop recording.")
+                        recording = False
+                        silence_frames = 0
 
-# Stop and close the stream
-stream.stop_stream()
-stream.close()
+                        # Save the recorded audio
+                        filename = "recording.wav"
+                        wf = wave.open(filename, 'wb')
+                        wf.setnchannels(1)
+                        wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
+                        wf.setframerate(16000)
+                        wf.writeframes(b''.join(frames))
+                        wf.close()
 
-# Terminate the PortAudio interface
-p.terminate()
+                        # Reset the frames list for the next recording
+                        frames = []
+                    else:
+                        # Optionally, keep recording silence for a smoother transition
+                        frames.append(buffer)
 
-# Save the recorded data as a WAV file
-filename = 'output.wav'
-wf = wave.open(filename, 'wb')
-wf.setnchannels(channels)
-wf.setsampwidth(p.get_sample_size(sample_format))
-wf.setframerate(fs)
-wf.writeframes(b''.join(frames))
-wf.close()
+    except KeyboardInterrupt:
+        pass  # Exit on Ctrl+C
 
-# Note: you need to be using OpenAI Python v0.27.0 for the code below to work
-audio_file= open("output.wav", "rb")
-transcript = openai.Audio.transcribe("whisper-1", audio_file)
-print(transcript)
+    finally:
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+if __name__ == "__main__":
+    main()

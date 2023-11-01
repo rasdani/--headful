@@ -168,3 +168,4 @@ cython_debug/
 *.mp3
 UIED/
 .DS_Store
+data/
