@@ -15,6 +15,7 @@ GPT_MODEL = "gpt-3.5-turbo-0613"
 
 @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
 def chat_completion_request(messages, functions=None, function_call=None, model=GPT_MODEL):
+    print(f"{model=}")
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + openai.api_key,
@@ -75,22 +76,22 @@ messages = []
 messages.append({"role": "system", "content": "Navigate a web browser with the provided functions."})
 # messages.append({"role": "user", "content": "Hi, who are the top 5 artists by number of tracks?"})
 
-while True:
-    user_input = input("Enter your message: ")
-    if user_input.lower() == "quit":
-        break
-    messages.append({"role": "user", "content": user_input})
-    chat_response = chat_completion_request(
-        messages,
-        functions=functions,
-    )
-    print(f"{chat_response=}")
-    print(f"{chat_response.text=}")
-    assistant_message = chat_response.json()["choices"][0]["message"]
-    assistant_message = chat_response.json()["choices"][0]["message"]
-    if "function_call" in assistant_message:
-        function_call = assistant_message["function_call"]
-        execute_function_call(function_call)  # Assuming this function is set up to handle the function call object
-    else:
-        messages.append(assistant_message)
-        print("Assistant's response: ", assistant_message["content"])
+if __name__ == "__main__":
+    while True:
+        user_input = input("Enter your message: ")
+        if user_input.lower() == "quit":
+            break
+        messages.append({"role": "user", "content": user_input})
+        chat_response = chat_completion_request(
+            messages,
+            functions=functions,
+        )
+        print(f"{chat_response=}")
+        print(f"{chat_response.text=}")
+        assistant_message = chat_response.json()["choices"][0]["message"]
+        if "function_call" in assistant_message:
+            function_call = assistant_message["function_call"]
+            execute_function_call(function_call)  # Assuming this function is set up to handle the function call object
+        else:
+            messages.append(assistant_message)
+            print("Assistant's response: ", assistant_message["content"])

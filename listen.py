@@ -1,6 +1,12 @@
 import pyaudio
 import wave
 import webrtcvad
+import openai
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
     p = pyaudio.PyAudio()
@@ -12,6 +18,8 @@ def main():
     recording = False
     frames = []  # List to hold audio frames
     silence_frames = 0  # Counter for silent frames
+    # silence_threshold = 30  # Silence threshold in number of framesh
+    silence_threshold = 90  # Silence threshold in number of framesh
 
     try:
         while True:
@@ -30,7 +38,7 @@ def main():
                     silence_frames += 1
 
                     # If silence duration exceeds a threshold, stop recording
-                    if silence_frames > 30:  # For example, stop recording after 1 second of silence
+                    if silence_frames > silence_threshold:  # For example, stop recording after 1 second of silence
                         print("Speech ended, stop recording.")
                         recording = False
                         silence_frames = 0
@@ -43,6 +51,9 @@ def main():
                         wf.setframerate(16000)
                         wf.writeframes(b''.join(frames))
                         wf.close()
+                        audio_file = open("recording.wav", "rb") #TODO: skip writing to disk
+                        transcript = openai.Audio.transcribe("whisper-1", audio_file)
+                        print(transcript) 
 
                         # Reset the frames list for the next recording
                         frames = []
@@ -57,6 +68,9 @@ def main():
         stream.stop_stream()
         stream.close()
         p.terminate()
+        # audio_file= open("recording.wav", "rb")
+        # transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        # print(transcript) 
 
 if __name__ == "__main__":
     main()
