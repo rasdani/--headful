@@ -17,10 +17,25 @@ def visit_website(driver, url):
     driver.navigate_to(url)
     return "Success"
 
+def execute_browser_action(driver, action):
+   page = driver.page
+   if action == "go_back":
+       page.go_back()
+   elif action == "go_forward":
+       page.go_forward()
+   elif action == "new_tab":
+       page.context().new_page()
+   else:
+       return f"Unknown action: {action}"
+   return "Success"
+
 def execute_function_call(driver, function_call):
     if function_call["name"] == "visit_website":
         url = json.loads(function_call["arguments"])["url"]
         results = visit_website(driver, url)
+    elif function_call["name"] == "execute_browser_action":
+        action = json.loads(function_call["arguments"])["action"]
+        results = execute_browser_action(driver, action)
     else:
         results = f"Error: function {function_call['name']} does not exist"
     return results
@@ -76,14 +91,21 @@ def main():
                             wf.writeframes(b''.join(frames))
                             wf.close()
                             audio_file = open("recording.wav", "rb") #TODO: skip writing to disk
-                            transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                            user_input = transcript['text']
+                            # transcript = openai.Audio.transcribe("whisper-1", audio_file)
+                            # user_input = transcript['text']
+                            user_input = input("Enter your message: ")
                             print(f"{user_input=}") 
+                            frames = []
+                            messages.append({"role": "user", "content": user_input})
+                            print(f"{messages=}")
+                            print(f"{functions=}")
                             chat_response = chat_completion_request(
-                                messages,
+                                messages=messages,
                                 functions=functions,
                                 )
-                            assistant_message = chat_response.json()["choices"][0]["message"]
+                            print(f"{chat_response=}")
+                            # assistant_message = chat_response.json()["choices"][0]["message"]
+                            assistant_message = chat_response["choices"][0]["message"]
                             if "function_call" in assistant_message:
                                 function_call = assistant_message["function_call"]
                                 execute_function_call(driver, function_call)  # Assuming this function is set up to handle the function call object
@@ -91,7 +113,6 @@ def main():
                                 messages.append(assistant_message)
                                 print("Assistant's response: ", assistant_message["content"])
                                 # Reset the frames list for the next recording
-                                frames = []
                         else:
                             # Optionally, keep recording silence for a smoother transition
                             frames.append(buffer)

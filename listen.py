@@ -25,6 +25,7 @@ def main():
         while True:
             buffer = stream.read(160, exception_on_overflow=False)
             is_speech = vad.is_speech(buffer, sample_rate=16000)
+            is_speech = True
 
             if is_speech:
                 if not recording:
