@@ -1,3 +1,4 @@
+from time import sleep
 from openai import OpenAI
 import instructor
 from enum import Enum
@@ -10,7 +11,8 @@ load_dotenv()
 client = instructor.patch(OpenAI())
 # MODEL = "gpt-4-1106-preview"
 # MODEL = "gpt-4"
-MODEL = "gpt-3.5-turbo-1106"
+# MODEL = "gpt-3.5-turbo-1106"
+MODEL = "gpt-3.5-turbo"
 
 class FunctionName(Enum):
     VISIT_WEBSITE = 'visit_website'
@@ -105,78 +107,94 @@ tools = [
     }
 ]
 
-# Create Assistant
-assistant = client.beta.assistants.create(
-    name="Web Browser Assistant",
-    instructions="You are the operator of a web browser. Translate user requests into calls of the provided browser functions.",
-    tools=tools,
-    model=MODEL,
-)
+def create_assistant(**kwargs):
+    assistant = client.beta.assistants.create(**kwargs)
+    return assistant
 
-# Create Thread
-thread = client.beta.threads.create()
+def create_thread():
+    thread = client.beta.threads.create()
+    return thread
 
-# Add a message to the thread
-user_message = "Visit google"
-message = client.beta.threads.messages.create(
+def add_message_to_thread(thread, message):
+    message = "Visit google"
+    message_obj = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=message,
+    )
+    return message_obj
+
+def list_messages(thread):
+    thread_messages = client.beta.threads.messages.list(thread_id=thread.id)
+    return thread_messages
+
+def create_assistant_run(thread, assistant):
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=assistant.id,
+    )
+    return run
+
+def get_run(thread, run):
+    run = client.beta.threads.runs.retrieve(
+        thread_id=thread.id,
+        run_id=run.id,
+    )
+    return run
+
+def get_run_status(thread, run):
+    run = client.beta.threads.runs.retrieve(
+        thread_id=thread.id,
+        run_id=run.id,
+    )
+    return run.status
+
+def get_run_steps(thread, run):
+    run_steps = client.beta.threads.runs.steps.list(
+        thread_id=thread.id,
+        run_id=run.id
+    )
+    return run_steps
+
+def wait_for_run(run):
+    print(f"{run.status}")
+    while run.status in ['in_progress', 'queued']:
+        sleep(1)
+        print(f"{run.status}")
+    print(f"{run.status}")
+    return run 
+
+def get_tool_calls(run):
+    tool_calls = run.required_action.submit_tool_outputs.tool_calls
+    return tool_calls
+
+def get_call_ids(tool_calls):
+    return [call.id for call in tool_calls]
+
+def submit_tool_outputs(thread, run, call_ids, outputs):
+    tool_outputs=[{"tool_call_id": call_id, "output": output} for call_id, output in zip(call_ids, outputs)]
+    run = client.beta.threads.runs.submit_tool_outputs(
     thread_id=thread.id,
-    role="user",
-    content=user_message,
-)
-thread_messages = client.beta.threads.messages.list(thread_id=thread.id)
-# print(f"{thread.data=}")
+    run_id=run.id,
+    tool_outputs=tool_outputs,
+    )
+    return run
 
-# Run the Assistant
-run = client.beta.threads.runs.create(
-  thread_id=thread.id,
-  assistant_id=assistant.id,
-#   instructions="Please address the user as Jane Doe. The user has a premium account."
-)
+if __name__ == "__main__":
+    name = "Web Browser Assistant"
+    instructions="You are the operator of a web browser. Translate user requests into calls of the provided browser functions."
+    assistant = create_assistant(name=name, instructions=instructions, tools=tools, model=MODEL)
+    thread = create_thread()
+    message = "Visit google"
+    message_obj = add_message_to_thread(thread, message)
+    run = create_assistant_run(thread, assistant)
+    run = wait_for_run(run)
+    tool_calls = get_tool_calls(run)
+    call_ids = get_call_ids(tool_calls)
+    outputs = ["https://google.com"]
+    run = submit_tool_outputs(thread, run, call_ids, outputs)
+    run = wait_for_run(run)
+    messages = list_messages(thread)
+    print(messages)
 
-# Retrive run and check its status
-run = client.beta.threads.runs.retrieve(
-  thread_id=thread.id,
-  run_id=run.id,
-)
-print(f"{run.status=}")
 
-# Retrieve Assistant's response
-messages = client.beta.threads.messages.list(
-  thread_id=thread.id
-)
-print(f"{messages=}")
-
-# Optionally inspect the run steps
-run_steps = client.beta.threads.runs.steps.list(
-    thread_id=thread.id,
-    run_id=run.id
-)
-print(f"{run_steps=}")
-
-# Retriece run to get function call ids
-# Retrive run and check its status
-run = client.beta.threads.runs.retrieve(
-  thread_id=thread.id,
-  run_id=run.id,
-)
-tool_calls = run.required_action.submit_tool_outputs.tool_calls
-print(f"{tool_calls=}")
-# call_ids = [call.tool_call_id for call in tool_calls]
-
-### excute function
-
-# Submit function call outputs
-# run = client.beta.threads.runs.submit_tool_outputs(
-#   thread_id=thread.id,
-#   run_id=run.id,
-#   tool_outputs=[
-#       {
-#         "tool_call_id": call_ids[0],
-#         "output": "22C",
-#       },
-#       {
-#         "tool_call_id": call_ids[1],
-#         "output": "LA",
-#       },
-#     ]
-# )
