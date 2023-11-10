@@ -11,8 +11,8 @@ load_dotenv()
 client = instructor.patch(OpenAI())
 # MODEL = "gpt-4-1106-preview"
 # MODEL = "gpt-4"
-# MODEL = "gpt-3.5-turbo-1106"
-MODEL = "gpt-3.5-turbo"
+MODEL = "gpt-3.5-turbo-1106"
+# MODEL = "gpt-3.5-turbo"
 
 class FunctionName(Enum):
     VISIT_WEBSITE = 'visit_website'
@@ -191,7 +191,6 @@ if __name__ == "__main__":
     run = wait_for_run(run)
     tool_calls = get_tool_calls(run)
     call_ids = get_call_ids(tool_calls)
-    outputs = ["https://google.com"]
     run = submit_tool_outputs(thread, run, call_ids, outputs)
     run = wait_for_run(run)
     messages = list_messages(thread)

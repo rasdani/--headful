@@ -5,7 +5,7 @@ def run(playwright):
     chromium = playwright.chromium
     # Path to the extension
     home_dir = os.getenv("HOME")
-    path_to_extension = os.path.join(home_dir, 'code/vimium')
+    path_to_extension = os.path.join(home_dir, 'git/vimium')
     # Launching browser with a persistent context
     browser_context = chromium.launch_persistent_context(
         './user-data-dir',
@@ -17,7 +17,9 @@ def run(playwright):
     )
     page = browser_context.new_page()
     page.goto('https://github.com')
+    # page.screenshot(path='screenshot_before.png')
     page.keyboard.press('f')
+    # page.screenshot(path='screenshot_after.png')
     # Interact with the background page or the popup of the extension
     # ...
 
