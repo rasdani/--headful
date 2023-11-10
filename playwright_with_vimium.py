@@ -19,7 +19,7 @@ def run(playwright):
     page.goto('https://github.com')
     # page.screenshot(path='screenshot_before.png')
     page.keyboard.press('f')
-    # page.screenshot(path='screenshot_after.png')
+    page.screenshot(path='screenshot_after.png')
     # Interact with the background page or the popup of the extension
     # ...
 
