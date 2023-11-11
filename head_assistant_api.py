@@ -213,10 +213,12 @@ def setup_chat(assistant_name, instructions, tools, model):
     thread = create_thread()
     return assistant, thread
 
+
 def get_tool_call_ids(run):
     tool_calls = get_tool_calls(run)
     call_ids = get_call_ids(tool_calls)
     return call_ids
+
 
 if __name__ == "__main__":
     name = "Web Browser Assistant"

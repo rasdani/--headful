@@ -22,31 +22,38 @@ def main():
     )
     playwright = None
     context = None
+    home_dir = os.getenv("HOME")
+    path_to_extension = os.path.join(home_dir, "git/vimium")
+    args = [
+        f"--disable-extensions-except={path_to_extension}",
+        f"--load-extension={path_to_extension}",
+        "--window-size=960,800",
+    ]
+    viewport_size = {"width": 960, "height": 800}
+    screen_size = {"width": 960, "height": 800}
+    # viewport_size = None
     # with sync_playwright() as playwright:
     try:
         playwright = sync_playwright().start()
         context = playwright.chromium.launch_persistent_context(
-            "./browser-data", 
+            "./browser-data",
             headless=False,
+            args=args,
+            screen=screen_size,
         )
         # context.pages[0].close()  # Close the initial page
-        viewport_size = {"width": 960, "height": 800}
-        viewport_size = None
-        driver = WebDriver(playwright=playwright, context=context, viewport_size=viewport_size)
+        driver = WebDriver(
+            playwright=playwright, context=context, viewport_size=viewport_size
+        )
         while True:
             user_input = input("Enter your message: ")
             if user_input == "x":
                 break
             messages.append({"role": "user", "content": user_input})
             func_call = chat_completion_request(messages)
-            print(f"{messages=}")
             print(f"{func_call=}")
-
             driver = execute_function_call(driver, func_call)
             messages = []
-            print(messages)
-            viewport_size = driver.page.viewport_size
-            print(f"Current window size: {viewport_size['width']}x{viewport_size['height']}")
 
     except KeyboardInterrupt:
         print("Exiting...")

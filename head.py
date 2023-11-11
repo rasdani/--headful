@@ -49,6 +49,7 @@ class FunctionCall(BaseModel):
 
 def visit_website(driver, url):
     driver.navigate_to(url)
+    press_f_and_screenshot(driver)
     return driver
 
 
@@ -56,8 +57,10 @@ def execute_browser_action(driver, action: BrowserAction):
     page = driver.page
     if action == BrowserAction.GO_BACK:
         page.go_back()
+        press_f_and_screenshot(driver)
     elif action == BrowserAction.GO_FORWARD:
         page.go_forward()
+        press_f_and_screenshot(driver)
     elif action == BrowserAction.NEW_TAB:
         viewport_size = page.viewport_size
         new_page = page.context.new_page()
@@ -66,6 +69,13 @@ def execute_browser_action(driver, action: BrowserAction):
     else:
         raise ValueError(f"Unknown action: {action.action}")
     return driver
+
+
+def press_f_and_screenshot(driver):
+    page = driver.page
+    page.screenshot(path="screenshot_before.png")
+    page.keyboard.press("f")
+    page.screenshot(path="screenshot_after.png")
 
 
 def execute_function_call(driver, function_call: FunctionCall):
@@ -118,6 +128,7 @@ functions = [
         },
     },
 ]
+
 
 def chat_completion_request(messages, functions=functions, model=GPT_MODEL):
     try:
