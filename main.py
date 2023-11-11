@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright
 import json
 
 from drive_browser import WebDriver
-from head import chat_completion_request, execute_function_call
+from head import function_call_request, execute_function_call
 
 
 load_dotenv()
@@ -17,7 +17,7 @@ def main():
     messages.append(
         {
             "role": "system",
-            "content": "Navigate a web browser with the provided functions.",
+            "content": "Navigate a web browser with the provided functions. If the user wants to click on a specific webpage element, pass the request on",
         }
     )
     playwright = None
@@ -50,9 +50,10 @@ def main():
             if user_input == "x":
                 break
             messages.append({"role": "user", "content": user_input})
-            func_call = chat_completion_request(messages)
+            func_call = function_call_request(messages)
             print(f"{func_call=}")
-            driver = execute_function_call(driver, func_call)
+            driver, response = execute_function_call(driver, func_call)
+            print(f"{response=}")
             messages = []
 
     except KeyboardInterrupt:

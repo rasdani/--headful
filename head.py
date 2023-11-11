@@ -8,17 +8,20 @@ from urllib.parse import urlparse
 from typing import Union
 from dotenv import load_dotenv
 
+from eyes import see, see_legacy
+
 load_dotenv()
 client = instructor.patch(OpenAI())
-GPT_MODEL = "gpt-4-1106-preview"
+# GPT_MODEL = "gpt-4-1106-preview"
 # MODEL = "gpt-4"
-# GPT_MODEL = "gpt-3.5-turbo-1106"
-# MODEL = "gpt-3.5-turbo"
+GPT_MODEL = "gpt-3.5-turbo-1106"
+# GPT_MODEL = "gpt-3.5-turbo"
 
 
 class FunctionName(Enum):
     VISIT_WEBSITE = "visit_website"
     EXECUTE_BROWSER_ACTION = "execute_browser_action"
+    CLICK_WEBPAGE_ELEMENT = "click_webpage_element"
 
 
 class VisitWebsiteArgs(BaseModel):
@@ -38,13 +41,17 @@ class BrowserAction(Enum):
     NEW_TAB = "new_tab"
 
 
-class ExecuteBrowserActionArgs(BaseModel):
-    action: BrowserAction
+# class ExecuteBrowserActionArgs(BaseModel):
+#     action: BrowserAction
+
+class UserRequest(BaseModel):
+    user_request: str
 
 
 class FunctionCall(BaseModel):
     function_name: FunctionName
-    arguments: Union[VisitWebsiteArgs, ExecuteBrowserActionArgs, None]
+    # arguments: Union[VisitWebsiteArgs, ExecuteBrowserActionArgs, UserRequest, None]
+    arguments: Union[VisitWebsiteArgs, UserRequest, None]
 
 
 def visit_website(driver, url):
@@ -70,6 +77,17 @@ def execute_browser_action(driver, action: BrowserAction):
         raise ValueError(f"Unknown action: {action.action}")
     return driver
 
+def click_webpage_element(user_request):
+    # image_path = "screenshot_after.png"
+    # response = see(image_path=image_path, user_request=user_request)
+    image_paths = [
+        "screenshot_before.png", 
+        "screenshot_after.png"
+    ]
+    response = see_legacy(image_paths=image_paths, user_request=user_request)
+    return response
+
+
 
 def press_f_and_screenshot(driver):
     page = driver.page
@@ -79,17 +97,21 @@ def press_f_and_screenshot(driver):
 
 
 def execute_function_call(driver, function_call: FunctionCall):
+    response = None
     if function_call.function_name == FunctionName.VISIT_WEBSITE:
         url = function_call.arguments.url
         driver = visit_website(driver, url)
-    elif function_call.function_name == FunctionName.EXECUTE_BROWSER_ACTION:
-        action = function_call.arguments.action
-        driver = execute_browser_action(driver, action)
+    # elif function_call.function_name == FunctionName.EXECUTE_BROWSER_ACTION:
+    #     action = function_call.arguments.action
+    #     driver = execute_browser_action(driver, action)
+    elif function_call.function_name == FunctionName.CLICK_WEBPAGE_ELEMENT:
+        user_request = function_call.arguments.user_request
+        response = click_webpage_element(user_request)
     else:
         raise ValueError(
             f"Error: function {function_call.function_name} does not exist"
         )
-    return driver
+    return driver, response
 
 
 functions = [
@@ -110,27 +132,46 @@ functions = [
             },
         },
     },
+    # {
+    #     "type": "function",
+    #     "function": {
+    #         "name": "execute_browser_action",
+    #         # "description": "Use this function to go back, go forward, or open a new tab",
+    #         "description": "Use this function to go back or go forward",
+    #         "parameters": {
+    #             "type": "object",
+    #             "properties": {
+    #                 "action": {
+    #                     "type": "string",
+    #                     # "description": "The action to be performed in the browser. Can be 'go_back', 'go_forward', or 'new_tab'.",
+    #                     "description": "The action to be performed in the browser. Can be 'go_back' or 'go_forward'.",
+    #                 },
+    #             },
+    #             "required": ["action"],
+    #         },
+    #     },
+    # },
     {
         "type": "function",
         "function": {
-            "name": "execute_browser_action",
-            "description": "Use this function to go back, go forward, or open a new tab",
+            "name": "click",
+            "description": "If the user wants to click on a specific webpage element, pass the user request on as a string to this function.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "action": {
+                    "user_request": {
                         "type": "string",
-                        "description": "The action to be performed in the browser. Can be 'go_back', 'go_forward', or 'new_tab'.",
+                        "description": "Click request from the user. To be passed on.",
                     },
                 },
-                "required": ["action"],
+                "required": ["user_request"],
             },
         },
-    },
+    }
 ]
 
 
-def chat_completion_request(messages, functions=functions, model=GPT_MODEL):
+def function_call_request(messages, functions=functions, model=GPT_MODEL):
     try:
         func_call: FunctionCall = client.chat.completions.create(
             model=model,
