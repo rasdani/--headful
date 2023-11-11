@@ -20,31 +20,48 @@ def main():
             "content": "Navigate a web browser with the provided functions.",
         }
     )
-    with sync_playwright() as playwright:
-        # driver = WebDriver(playwright)
-        # driver.start_browser(headless=False)
+    playwright = None
+    context = None
+    # with sync_playwright() as playwright:
+    try:
+        playwright = sync_playwright().start()
+        context = playwright.chromium.launch_persistent_context(
+            "./browser-data", 
+            headless=False,
+        )
+        # context.pages[0].close()  # Close the initial page
+        viewport_size = {"width": 960, "height": 800}
+        viewport_size = None
+        driver = WebDriver(playwright=playwright, context=context, viewport_size=viewport_size)
         while True:
             user_input = input("Enter your message: ")
+            if user_input == "x":
+                break
             messages.append({"role": "user", "content": user_input})
             func_call = chat_completion_request(messages)
             print(f"{messages=}")
             print(f"{func_call=}")
 
-            # driver = execute_function_call(driver, func_call)
+            driver = execute_function_call(driver, func_call)
             messages = []
             print(messages)
-            # if "function_call" in assistant_message:
-            #     function_call = assistant_message["function_call"]
-            #     execute_function_call(driver, function_call)  # Assuming this function is set up to handle the function call object
-            # else:
-            #     messages.append(assistant_message)
-            #     print("Assistant's response: ", assistant_message["content"])
-            # if "function_call" in assistant_message:
-            #     function_call = assistant_message["function_call"]
-            #     execute_function_call(driver, function_call)  # Assuming this function is set up to handle the function call object
-            # else:
-            #     messages.append(assistant_message)
-            #     print("Assistant's response: ", assistant_message["content"])
+            viewport_size = driver.page.viewport_size
+            print(f"Current window size: {viewport_size['width']}x{viewport_size['height']}")
+
+    except KeyboardInterrupt:
+        print("Exiting...")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        print("Exiting...")
+
+    finally:
+        if context:
+            print("Cleaning up context...")
+            context.close()
+        if playwright:
+            print("Stopping playwright...")
+            playwright.stop()
+        print("Done.")
 
 
 if __name__ == "__main__":

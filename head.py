@@ -59,7 +59,9 @@ def execute_browser_action(driver, action: BrowserAction):
     elif action == BrowserAction.GO_FORWARD:
         page.go_forward()
     elif action == BrowserAction.NEW_TAB:
+        viewport_size = page.viewport_size
         new_page = page.context.new_page()
+        new_page.set_viewport_size(viewport_size)
         driver.page = new_page
     else:
         raise ValueError(f"Unknown action: {action.action}")

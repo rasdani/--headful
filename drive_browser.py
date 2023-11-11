@@ -3,11 +3,13 @@ from playwright.sync_api import sync_playwright, Playwright
 
 
 class WebDriver:
-    def __init__(self, playwright: Playwright):
+    def __init__(self, playwright: Playwright, context=None, viewport_size=None):
         self.playwright = playwright
         self.browser = None
-        self.context = None
-        self.page = None
+        self.context = context
+        self.page = context.new_page() if context else None
+        if viewport_size:
+            self.page.set_viewport_size(viewport_size)
 
     def start_browser(self, headless=False, browser_type="chromium"):
         browser_launcher = getattr(self.playwright, browser_type, None)
