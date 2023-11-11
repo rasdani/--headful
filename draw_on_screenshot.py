@@ -9,12 +9,12 @@ from PIL import Image, ImageDraw
 #     "height": 34.5
 # }
 # Open an image file
-with Image.open('screenshot_after.png') as img:
+with Image.open("screenshot_after.png") as img:
     # Create ImageDraw object
     draw = ImageDraw.Draw(img)
     # Define bounding box coordinates
     bbox = [(16, 18.75), (48, 53.25)]
     # Draw rectangle on image
-    draw.rectangle(bbox, outline ="red")
+    draw.rectangle(bbox, outline="red")
     # Save the image
-    img.save('screenshot_after_bbox.png')
+    img.save("screenshot_after_bbox.png")

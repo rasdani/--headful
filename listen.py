@@ -8,9 +8,16 @@ import os
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+
 def main():
     p = pyaudio.PyAudio()
-    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=160)
+    stream = p.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=16000,
+        input=True,
+        frames_per_buffer=160,
+    )
     vad = webrtcvad.Vad(3)  # Set aggressiveness mode, an integer between 0 and 3.
 
     print("Speak into the microphone...")
@@ -39,22 +46,26 @@ def main():
                     silence_frames += 1
 
                     # If silence duration exceeds a threshold, stop recording
-                    if silence_frames > silence_threshold:  # For example, stop recording after 1 second of silence
+                    if (
+                        silence_frames > silence_threshold
+                    ):  # For example, stop recording after 1 second of silence
                         print("Speech ended, stop recording.")
                         recording = False
                         silence_frames = 0
 
                         # Save the recorded audio
                         filename = "recording.wav"
-                        wf = wave.open(filename, 'wb')
+                        wf = wave.open(filename, "wb")
                         wf.setnchannels(1)
                         wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
                         wf.setframerate(16000)
-                        wf.writeframes(b''.join(frames))
+                        wf.writeframes(b"".join(frames))
                         wf.close()
-                        audio_file = open("recording.wav", "rb") #TODO: skip writing to disk
+                        audio_file = open(
+                            "recording.wav", "rb"
+                        )  # TODO: skip writing to disk
                         transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                        print(transcript) 
+                        print(transcript)
 
                         # Reset the frames list for the next recording
                         frames = []
@@ -71,7 +82,8 @@ def main():
         p.terminate()
         # audio_file= open("recording.wav", "rb")
         # transcript = openai.Audio.transcribe("whisper-1", audio_file)
-        # print(transcript) 
+        # print(transcript)
+
 
 if __name__ == "__main__":
     main()

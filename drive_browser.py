@@ -1,6 +1,7 @@
 from time import sleep
 from playwright.sync_api import sync_playwright, Playwright
 
+
 class WebDriver:
     def __init__(self, playwright: Playwright):
         self.playwright = playwright
@@ -12,7 +13,9 @@ class WebDriver:
         browser_launcher = getattr(self.playwright, browser_type, None)
         if not browser_launcher:
             raise ValueError(f"Invalid browser type: {browser_type}")
-        self.browser = browser_launcher.launch(headless=headless, args=["--start-maximized"])
+        self.browser = browser_launcher.launch(
+            headless=headless, args=["--start-maximized"]
+        )
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
 
@@ -30,7 +33,7 @@ class WebDriver:
 
     def press_enter(self):
         if self.page:
-            self.page.keyboard.press('Enter')
+            self.page.keyboard.press("Enter")
 
     def take_screenshot(self, screenshot_path="screenshot.png"):
         if self.page:
@@ -39,6 +42,7 @@ class WebDriver:
     def close_browser(self):
         if self.browser:
             self.browser.close()
+
 
 # Example Usage:
 if __name__ == "__main__":

@@ -52,41 +52,45 @@ functions = [
             },
             "required": ["action"],
         },
-    }
+    },
 ]
+
 
 def visit_website(driver, url):
     driver.navigate_to(url)
     return driver
 
 
-
 class FunctionName(Enum):
-    VISIT_WEBSITE = 'visit_website'
-    EXECUTE_BROWSER_ACTION = 'execute_browser_action'
+    VISIT_WEBSITE = "visit_website"
+    EXECUTE_BROWSER_ACTION = "execute_browser_action"
+
 
 class VisitWebsiteArgs(BaseModel):
     url: str
 
-    @validator('url')
+    @validator("url")
     def check_url(cls, v):
         parsed = urlparse(v)
         if not all([parsed.scheme, parsed.netloc]):
-            raise ValueError('Invalid URL')
+            raise ValueError("Invalid URL")
         return v
 
 
 class BrowserAction(Enum):
-    GO_BACK = 'go_back'
-    GO_FORWARD = 'go_forward'
-    NEW_TAB = 'new_tab'
+    GO_BACK = "go_back"
+    GO_FORWARD = "go_forward"
+    NEW_TAB = "new_tab"
+
 
 class ExecuteBrowserActionArgs(BaseModel):
     action: BrowserAction
 
+
 class FunctionCall(BaseModel):
     function_name: FunctionName
     arguments: Union[VisitWebsiteArgs, ExecuteBrowserActionArgs, None]
+
 
 def execute_browser_action(driver, action: BrowserAction):
     page = driver.page
@@ -101,6 +105,7 @@ def execute_browser_action(driver, action: BrowserAction):
         raise ValueError(f"Unknown action: {action.action}")
     return driver
 
+
 def execute_function_call(driver, function_call: FunctionCall):
     if function_call.function_name == FunctionName.VISIT_WEBSITE:
         url = function_call.arguments.url
@@ -109,8 +114,11 @@ def execute_function_call(driver, function_call: FunctionCall):
         action = function_call.arguments.action
         driver = execute_browser_action(driver, action)
     else:
-        raise ValueError(f"Error: function {function_call.function_name} does not exist")
+        raise ValueError(
+            f"Error: function {function_call.function_name} does not exist"
+        )
     return driver
+
 
 try:
     with sync_playwright() as playwright:
@@ -118,7 +126,7 @@ try:
         driver.start_browser(headless=False)
         while True:
             user_input = input("Enter your message: ")
-            messages.append({"role": "user", "content": user_input})    
+            messages.append({"role": "user", "content": user_input})
             func_call: FunctionCall = openai.ChatCompletion.create(
                 model=GPT_MODEL,
                 temperature=0,
@@ -137,4 +145,4 @@ except KeyboardInterrupt:
     pass
 
 # finally:
-    # driver.close_browser()
+# driver.close_browser()
