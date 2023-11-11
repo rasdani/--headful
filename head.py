@@ -128,7 +128,6 @@ def create_thread():
 
 
 def add_message_to_thread(thread, message):
-    message = "Visit google"
     message_obj = client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -158,12 +157,12 @@ def get_run(thread, run):
     return run
 
 
-def get_run_status(thread, run):
+def update_run(thread, run):
     run = client.beta.threads.runs.retrieve(
         thread_id=thread.id,
         run_id=run.id,
     )
-    return run.status
+    return run
 
 
 def get_run_steps(thread, run):
@@ -171,12 +170,15 @@ def get_run_steps(thread, run):
     return run_steps
 
 
-def wait_for_run(run):
-    print(f"{run.status}")
-    while run.status in ["in_progress", "queued"]:
+def wait_for_run(thread, run):
+    status = run.status
+    print(f"{status}")
+    while status in ["in_progress", "queued"]:
         sleep(1)
-        print(f"{run.status}")
-    print(f"{run.status}")
+        run = update_run(thread, run)
+        status = run.status
+        print(f"{status}")
+    print(f"{status}")
     return run
 
 
@@ -202,6 +204,18 @@ def submit_tool_outputs(thread, run, call_ids, outputs):
     return run
 
 
+def setup_chat(assistant_name, instructions, tools, model):
+    assistant = create_assistant(
+        name=assistant_name, instructions=instructions, tools=tools, model=model
+    )
+    thread = create_thread()
+    return assistant, thread
+
+def get_tool_call_ids(run):
+    tool_calls = get_tool_calls(run)
+    call_ids = get_call_ids(tool_calls)
+    return call_ids
+
 if __name__ == "__main__":
     name = "Web Browser Assistant"
     instructions = "You are the operator of a web browser. Translate user requests into calls of the provided browser functions."
@@ -212,10 +226,11 @@ if __name__ == "__main__":
     message = "Visit google"
     message_obj = add_message_to_thread(thread, message)
     run = create_assistant_run(thread, assistant)
-    run = wait_for_run(run)
+    run = wait_for_run(thread, run)
     tool_calls = get_tool_calls(run)
     call_ids = get_call_ids(tool_calls)
+    outputs = ["Success"]
     run = submit_tool_outputs(thread, run, call_ids, outputs)
-    run = wait_for_run(run)
+    run = wait_for_run(thread, run)
     messages = list_messages(thread)
     print(messages)
