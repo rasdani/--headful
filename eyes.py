@@ -9,20 +9,26 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 LABEL_DESCRIPTION = "small yellow"
-LABEL_COLOR = "large red"
+# LABEL_DESCRIPTION = "large red"
+# LABEL_DESCRIPTION = "small red"
+
 
 # Function to encode the image
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
+
 def see(image_path, user_request):
     base64_image = encode_image(image_path)
-    message = """This is a screenshot of a web page. The clickable elements of the page are annotated with small yellow labels containing a code of one or two letters. \
-        Now follows a user request. Interpret which element the user wants to interact with and return the corresponding letter code. \
-        Respond by citing the letter code only!
-    USER REQUEST: {user_request}"""
-    message = message.format(user_request=user_request)
+    message = """\
+This is a screenshot of a web page. The clickable elements of the page have red bounding boxes are annotated with {label_descripton} labels containing a code of one or two letters.\n
+Now follows a user request. Indentify the element the user wants to interact with and return the corresponding letter code.\
+Respond by citing the letter code only, or respond with a question mark, if the requested element is not present in the screenshot!\n
+USER REQUEST: {user_request}"""
+    message = message.format(
+        user_request=user_request, label_descripton=LABEL_DESCRIPTION
+    )
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
@@ -38,7 +44,8 @@ def see(image_path, user_request):
                         "type": "image_url",
                         "image_url": {
                             # "url": f"data:image/jpeg;base64,{base64_image}"
-                            "url": f"data:image/png;base64,{base64_image}"
+                            "url": f"data:image/png;base64,{base64_image}",
+                            "detail": "high",
                         },
                     },
                 ],
@@ -55,6 +62,7 @@ def see(image_path, user_request):
     print(response_message)
     return response_message
 
+
 def see_legacy(image_paths, user_request):
     base64Frames = [encode_image(image_path) for image_path in image_paths]
     message = """\
@@ -66,13 +74,16 @@ Now follows a request. Indentify the relevant webpage element by looking at the 
 Respond by citing the letter code only!\
 ## Request
 {user_request}"""
-    message = message.format(user_request=user_request, label_description=LABEL_DESCRIPTION)
+    message = message.format(
+        user_request=user_request, label_description=LABEL_DESCRIPTION
+    )
     PROMPT_MESSAGES = [
         {
             "role": "user",
             "content": [
                 message,
-                *map(lambda x: {"image": x, "resize": 768}, base64Frames),
+                # *map(lambda x: {"image": x, "resize": 768}, base64Frames),
+                *map(lambda x: {"image": x, "detail": "high"}, base64Frames),
             ],
         },
     ]
@@ -89,6 +100,7 @@ Respond by citing the letter code only!\
     result = client.chat.completions.create(**params)
     response = result.choices[0].message.content
     return response
+
 
 if __name__ == "__main__":
     image_path = "screenshot_after.png"

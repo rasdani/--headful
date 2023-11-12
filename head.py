@@ -44,6 +44,7 @@ class BrowserAction(Enum):
 # class ExecuteBrowserActionArgs(BaseModel):
 #     action: BrowserAction
 
+
 class UserRequest(BaseModel):
     user_request: str
 
@@ -56,6 +57,7 @@ class FunctionCall(BaseModel):
 
 def visit_website(driver, url):
     driver.navigate_to(url)
+    driver.page.wait_for_load_state("networkidle")  # wait for the page to load
     press_f_and_screenshot(driver)
     return driver
 
@@ -64,9 +66,11 @@ def execute_browser_action(driver, action: BrowserAction):
     page = driver.page
     if action == BrowserAction.GO_BACK:
         page.go_back()
+        page.wait_for_load_state("networkidle")  # wait for the page to load
         press_f_and_screenshot(driver)
     elif action == BrowserAction.GO_FORWARD:
         page.go_forward()
+        page.wait_for_load_state("networkidle")  # wait for the page to load
         press_f_and_screenshot(driver)
     elif action == BrowserAction.NEW_TAB:
         viewport_size = page.viewport_size
@@ -77,16 +81,16 @@ def execute_browser_action(driver, action: BrowserAction):
         raise ValueError(f"Unknown action: {action.action}")
     return driver
 
-def click_webpage_element(user_request):
-    # image_path = "screenshot_after.png"
-    # response = see(image_path=image_path, user_request=user_request)
-    image_paths = [
-        "screenshot_before.png", 
-        "screenshot_after.png"
-    ]
-    response = see_legacy(image_paths=image_paths, user_request=user_request)
-    return response
 
+def click_webpage_element(user_request):
+    image_path = "screenshot_after.png"
+    response = see(image_path=image_path, user_request=user_request)
+    # image_paths = [
+    #     "screenshot_before.png",
+    #     "screenshot_after.png"
+    # ]
+    # response = see_legacy(image_paths=image_paths, user_request=user_request)
+    return response
 
 
 def press_f_and_screenshot(driver):
@@ -167,7 +171,7 @@ functions = [
                 "required": ["user_request"],
             },
         },
-    }
+    },
 ]
 
 
