@@ -18,7 +18,8 @@ chrome_options.add_argument(f'load-extension={path_to_extension}')
 # chrome_options.add_extension(path_to_extension)
 
 # Setup driver
-driver = webdriver.Chrome(options=chrome_options)
+# driver = webdriver.Chrome(options=chrome_options)
+driver = webdriver.Firefox()
 
 # Navigate to webpage
 # url = "http://github.com/rasdani/--headful"
