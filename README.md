@@ -14,3 +14,7 @@ Use playwright to direct your browser 🕹️.
 
 - Install the requirements.
 - Run `playwright install` to install the browsers.
+
+## TODO
+
+- [ ] Send batches of bounding boxes/cut outs to classify.

@@ -8,6 +8,7 @@ class WebDriver:
         self.browser = None
         self.context = context
         self.page = context.new_page() if context else None
+        self.screen_shot_count = 0
         if viewport_size:
             self.page.set_viewport_size(viewport_size)
 
@@ -37,9 +38,13 @@ class WebDriver:
         if self.page:
             self.page.keyboard.press("Enter")
 
-    def take_screenshot(self, screenshot_path="screenshot.png"):
+    def take_screenshot(self, path="screenshot.png"):
+        path = path if path else f"bbox-images/{self.screen_shot_count}.png"
         if self.page:
-            self.page.screenshot(path=screenshot_path)
+            self.page.screenshot(path=path)
+            self.screen_shot_count += 1
+            print(f"Screenshot saved to {path}")
+
 
     def close_browser(self):
         if self.browser:

@@ -55,7 +55,7 @@ def render_header(image: Image.Image, header: str) -> Image.Image:
       header_image.height * (new_width / header_image.width))
 
   new_image = Image.new(
-      "RGB",
+      "RGBA",
       (new_width, new_height + new_header_height),
       "white")
   new_image.paste(header_image.resize((new_width, new_header_height)), (0, 0))
@@ -73,7 +73,7 @@ def render_header(image: Image.Image, header: str) -> Image.Image:
 bbox_coords = {"bottom": 276.953125, "top": 246.95314025878906, "left": 99.33160400390625, "right": 182.42189025878906, "width": 83.09028625488281, "height": 29.999984741210938}
 # Push coords a set amount to the left and up
 push_amount_x = 10
-push_amount_y = 20
+push_amount_y = 123
 bbox_coords["left"] -= push_amount_x
 bbox_coords["top"] -= push_amount_y
 bbox_coords["right"] -= push_amount_x
@@ -92,9 +92,12 @@ with Image.open("screenshot_before.png") as img:
     ]
     # Draw rectangle on image
     draw.rectangle(bbox, 
-                #    fill=(0, 0, 255, 1), 
+                #    fill=(0, 0, 255, 128), 
                    outline=(0, 0, 255, 255))
-    img = render_header(img, "click on 'Issues'")
+    # text = "click on 'Issues'"
+    # text = "click on 'Pull requests'"
+    # text = "click on 'Milestones'"
+    # img = render_header(img, text)
     # Draw rectangle on image with thicker outline
     # outline_width = 3
     # for i in range(outline_width):

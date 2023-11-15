@@ -58,6 +58,7 @@ class FunctionCall(BaseModel):
 def visit_website(driver, url):
     driver.navigate_to(url)
     driver.page.wait_for_load_state("networkidle")  # wait for the page to load
+    driver.page.keyboard.press("Escape")
     press_f_and_screenshot(driver)
     return driver
 
@@ -95,9 +96,13 @@ def click_webpage_element(user_request):
 
 def press_f_and_screenshot(driver):
     page = driver.page
-    page.screenshot(path="screenshot_before.png")
+    # page.screenshot(path="screenshot_before.png", full_page=True)
+    driver.take_screenshot(path="screenshot_before.png")
+    sleep(2)
     page.keyboard.press("f")
-    page.screenshot(path="screenshot_after.png")
+    sleep(2)
+    # page.screenshot(path="screenshot_after.png", full_page=True)
+    driver.take_screenshot(path="screenshot_after.png")
 
 
 def execute_function_call(driver, function_call: FunctionCall):

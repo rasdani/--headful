@@ -12,7 +12,10 @@ processor = Pix2StructProcessor.from_pretrained(model_id)
 
 # text = "click on the button that says 'Issues'"
 # text = "Issues"
-text = "click on 'Issues'"
+# text = "click on 'Issues'"
+text = ""
+# text = "click on 'Pull requests'"
+# text = "click on 'Milestones'"
 inputs = processor(images=image, text=text, return_tensors="pt")
 # inputs = processor(images=image, return_tensors="pt")
 

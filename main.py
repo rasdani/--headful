@@ -30,25 +30,30 @@ def main():
         # "--window-size=960,800",
     ]
     # viewport_size = {"width": 960, "height": 800}
-    viewport_size = {"width": 960, "height": 670}
-    screen_size = {"width": 960, "height": 800}
-    # viewport_size = None
+    # viewport_size = {"width": 960, "height": 670}
+    # viewport_size = {"width": 1280, "height": 720}
+    # screen_size = {"width": 960, "height": 800}
+    viewport_size = None
     # with sync_playwright() as playwright:
     try:
         playwright = sync_playwright().start()
+        # context = playwright.chromium.launch(headless=False, args=args)
+        # context = playwright.firefox.launch(headless=False, args=args)
         iPhone = playwright.devices["iPhone 12"]
         viewport_size = iPhone["viewport"]
         context = playwright.chromium.launch_persistent_context(
             "./browser-data",
             headless=False,
             args=args,
-            screen=screen_size,
+            # screen=screen_size,
             # device_scale_factor=1.5,
             user_agent=iPhone["user_agent"],
         )
         # context.pages[0].close()  # Close the initial page
         driver = WebDriver(
-            playwright=playwright, context=context, viewport_size=viewport_size
+            playwright=playwright,
+            context=context, 
+            viewport_size=viewport_size
         )
         # try mobile
         # browser = playwright.chromium.launch(headless=False, args=args)
@@ -62,6 +67,9 @@ def main():
             user_input = input("Enter your message: ")
             if user_input == "x":
                 break
+            if user_input == "s":
+                driver.take_screenshot()
+                continue
             messages.append({"role": "user", "content": user_input})
             func_call = function_call_request(messages)
             print(f"{func_call=}")
