@@ -40,6 +40,7 @@ USER REQUEST: {user_request}"""
                 "role": "user",
                 "content": [
                     {"type": "text", "text": message},
+                    # {"type": "text", "text": messages},
                     {
                         "type": "image_url",
                         "image_url": {
@@ -65,45 +66,99 @@ USER REQUEST: {user_request}"""
 
 def see_legacy(image_paths, user_request):
     base64Frames = [encode_image(image_path) for image_path in image_paths]
-    message = """\
-## Description
-These are two screenshots of the same webpage. The first one just shows the webpage, the second one overlays the webpage with {label_description} labels. \
-All clickable elements of the page are annotated with these {label_description} labels containing one or two letters. \
-## Objective
-Now follows a request. Indentify the relevant webpage element by looking at the first screenshot and look up the corresponding annotation label by referencing the second screenshot. \
-Respond by citing the letter code only!\
-## Request
-{user_request}"""
-    message = message.format(
-        user_request=user_request, label_description=LABEL_DESCRIPTION
-    )
-    PROMPT_MESSAGES = [
-        {
-            "role": "user",
-            "content": [
-                message,
-                # *map(lambda x: {"image": x, "resize": 768}, base64Frames),
-                *map(lambda x: {"image": x, "detail": "high"}, base64Frames),
-            ],
-        },
-    ]
-    params = {
-        "model": "gpt-4-vision-preview",
-        "temperature": 0.0,
-        "messages": PROMPT_MESSAGES,
-        # "api_key": api_key,
-        # "headers": {"Openai-Version": "2020-11-07"},
-        "max_tokens": 200,
-    }
+#     message = """\
+# ## Description
+# These are two screenshots of the same webpage. The first one just shows the webpage, the second one overlays the webpage with {label_description} labels. \
+# All clickable elements of the page are annotated with these {label_description} labels containing one or two letters. \
+# ## Objective
+# Now follows a request. Indentify the relevant webpage element by looking at the first screenshot and look up the corresponding annotation label by referencing the second screenshot. \
+# Respond by citing the letter code only!\
+# ## Request
+# {user_request}"""
+#     message = message.format(
+#         user_request=user_request, label_description=LABEL_DESCRIPTION
+#     )
 
-    # result = openai.ChatCompletion.create(**params)
-    result = client.chat.completions.create(**params)
-    response = result.choices[0].message.content
+    message = """\
+This is a screenshot of a web page. One clickable element of the web page is highlighted with a red bounding box.\n
+Now follows a user request. Classify wether the user request relates to the highlighted web page element or not.\
+Respond with a simple 'yes' or 'no'. When you are uncertain still respond with 'no', don't converse with the user, don't explain, avoid superfluos chatter.\n
+USER REQUEST: {user_request}"""
+    message = message.format(
+        user_request=user_request
+    )
+    # messages = [message] * len(base64Frames)
+    # PROMPT_MESSAGES = [
+    #     {
+    #         "role": "user",
+    #         "content": [
+    #             message,
+    #             # *map(lambda x: {"image": x, "resize": 768}, base64Frames),
+    #             *map(lambda x: {"image": x, "detail": "high"}, base64Frames),
+    #         ],
+    #     },
+    # ]
+    PROMPT_MESSAGES = []
+    for image in base64Frames:
+    # for image_path in image_paths:
+        # print("Processing image:", image_path)
+        prompt = {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": message},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image}"
+                            # "detail": "high",
+                        },
+                    },
+                ],
+            }
+        PROMPT_MESSAGES.append(prompt)
+
+    # params = {
+    #     "model": "gpt-4-vision-preview",
+    #     "temperature": 0.0,
+    #     # "messages": PROMPT_MESSAGES,
+    #     "prompt": PROMPT_MESSAGES,
+    #     # "api_key": api_key,
+    #     # "headers": {"Openai-Version": "2020-11-07"},
+    #     "max_tokens": 200,
+    # }
+
+    # # result = openai.ChatCompletion.create(**params)
+    # result = client.chat.completions.create(**params)
+    # response = result.choices[0].message.content
+
+    # no batching for chat completion :(
+    for prompt in PROMPT_MESSAGES:
+        params = {
+            "model": "gpt-4-vision-preview",
+            "temperature": 0.0,
+            "messages": [prompt],
+            # "prompt": PROMPT_MESSAGES,
+            # "api_key": api_key,
+            # "headers": {"Openai-Version": "2020-11-07"},
+            "max_tokens": 200,
+        }
+
+        result = client.chat.completions.create(**params)
+        response = result.choices[0].message.content
+        print(f"{result=}")
+        print(f"{response=}")
+    # breakpoint()
     return response
 
 
 if __name__ == "__main__":
-    image_path = "screenshot_after.png"
+    # image_path = "screenshot_after.png"
+    image_files = [os.path.join('bbox-images/', f) for f in os.listdir('bbox-images/') if f.endswith('.png')]
+    image_files.sort()
+    # API rate limits
+    image_files = image_files[:15]
+    # image_files = image_files[:2]
+    print(image_files)
     while True:
         user_request = input("User request: ")
-        see(image_path, user_request)
+        see_legacy(image_files, user_request)
