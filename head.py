@@ -13,9 +13,7 @@ from eyes import see, see_legacy
 load_dotenv()
 client = instructor.patch(OpenAI())
 # GPT_MODEL = "gpt-4-1106-preview"
-# MODEL = "gpt-4"
 GPT_MODEL = "gpt-3.5-turbo-1106"
-# GPT_MODEL = "gpt-3.5-turbo"
 
 
 class FunctionName(Enum):
@@ -39,10 +37,6 @@ class BrowserAction(Enum):
     GO_BACK = "go_back"
     GO_FORWARD = "go_forward"
     NEW_TAB = "new_tab"
-
-
-# class ExecuteBrowserActionArgs(BaseModel):
-#     action: BrowserAction
 
 
 class UserRequest(BaseModel):
@@ -141,25 +135,6 @@ functions = [
             },
         },
     },
-    # {
-    #     "type": "function",
-    #     "function": {
-    #         "name": "execute_browser_action",
-    #         # "description": "Use this function to go back, go forward, or open a new tab",
-    #         "description": "Use this function to go back or go forward",
-    #         "parameters": {
-    #             "type": "object",
-    #             "properties": {
-    #                 "action": {
-    #                     "type": "string",
-    #                     # "description": "The action to be performed in the browser. Can be 'go_back', 'go_forward', or 'new_tab'.",
-    #                     "description": "The action to be performed in the browser. Can be 'go_back' or 'go_forward'.",
-    #                 },
-    #             },
-    #             "required": ["action"],
-    #         },
-    #     },
-    # },
     {
         "type": "function",
         "function": {

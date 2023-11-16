@@ -22,48 +22,25 @@ def main():
     )
     playwright = None
     context = None
-    # home_dir = os.getenv("HOME")
-    # path_to_extension = os.path.join(home_dir, "git/vimium")
     path_to_extension = "./vimium"
     args = [
         f"--disable-extensions-except={path_to_extension}",
         f"--load-extension={path_to_extension}",
-        # "--window-size=960,800",
     ]
-    # viewport_size = {"width": 960, "height": 800}
-    # viewport_size = {"width": 960, "height": 670}
-    # viewport_size = {"width": 1280, "height": 720}
-    # screen_size = {"width": 960, "height": 800}
     viewport_size = None
-    # with sync_playwright() as playwright:
     try:
         playwright = sync_playwright().start()
-        # context = playwright.chromium.launch(headless=False, args=args)
-        # context = playwright.firefox.launch(headless=False, args=args)
         iPhone = playwright.devices["iPhone 12"]
         viewport_size = iPhone["viewport"]
         context = playwright.chromium.launch_persistent_context(
             "./browser-data",
             headless=False,
             args=args,
-            # screen=screen_size,
-            # device_scale_factor=1.5,
             user_agent=iPhone["user_agent"],
         )
-        # context.pages[0].close()  # Close the initial page
         driver = WebDriver(
-            playwright=playwright,
-            context=context, 
-            viewport_size=viewport_size
+            playwright=playwright, context=context, viewport_size=viewport_size
         )
-        # try mobile
-        # browser = playwright.chromium.launch(headless=False, args=args)
-        # context = browser.new_context(**iPhone)
-        # context = browser.new_context(user_agent=iPhone["user_agent"])
-        # driver = WebDriver(
-        #     playwright=playwright, context=context, 
-        #     # viewport_size=iPhone["viewport"]
-        # )
         while True:
             user_input = input("Enter your message: ")
             if user_input == "x":

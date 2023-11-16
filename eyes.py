@@ -67,27 +67,25 @@ USER REQUEST: {user_request}"""
 
 def see_legacy(image_paths, user_request):
     base64Frames = [encode_image(image_path) for image_path in image_paths]
-#     message = """\
-# ## Description
-# These are two screenshots of the same webpage. The first one just shows the webpage, the second one overlays the webpage with {label_description} labels. \
-# All clickable elements of the page are annotated with these {label_description} labels containing one or two letters. \
-# ## Objective
-# Now follows a request. Indentify the relevant webpage element by looking at the first screenshot and look up the corresponding annotation label by referencing the second screenshot. \
-# Respond by citing the letter code only!\
-# ## Request
-# {user_request}"""
-#     message = message.format(
-#         user_request=user_request, label_description=LABEL_DESCRIPTION
-#     )
+    #     message = """\
+    # ## Description
+    # These are two screenshots of the same webpage. The first one just shows the webpage, the second one overlays the webpage with {label_description} labels. \
+    # All clickable elements of the page are annotated with these {label_description} labels containing one or two letters. \
+    # ## Objective
+    # Now follows a request. Indentify the relevant webpage element by looking at the first screenshot and look up the corresponding annotation label by referencing the second screenshot. \
+    # Respond by citing the letter code only!\
+    # ## Request
+    # {user_request}"""
+    #     message = message.format(
+    #         user_request=user_request, label_description=LABEL_DESCRIPTION
+    #     )
 
     message = """\
 This is a screenshot of a web page. One clickable element of the web page is highlighted with a red bounding box.\n
 Now follows a user request. Classify wether the user request relates to the highlighted web page element or not.\
 Respond with a simple 'yes' or 'no'. When you are uncertain still respond with 'no', don't converse with the user, don't explain, avoid superfluos chatter.\n
 USER REQUEST: {user_request}"""
-    message = message.format(
-        user_request=user_request
-    )
+    message = message.format(user_request=user_request)
     # messages = [message] * len(base64Frames)
     # PROMPT_MESSAGES = [
     #     {
@@ -101,21 +99,21 @@ USER REQUEST: {user_request}"""
     # ]
     PROMPT_MESSAGES = []
     for image in base64Frames:
-    # for image_path in image_paths:
+        # for image_path in image_paths:
         # print("Processing image:", image_path)
         prompt = {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": message},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{image}"
-                            # "detail": "high",
-                        },
+            "role": "user",
+            "content": [
+                {"type": "text", "text": message},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{image}"
+                        # "detail": "high",
                     },
-                ],
-            }
+                },
+            ],
+        }
         PROMPT_MESSAGES.append(prompt)
 
     # params = {
@@ -153,7 +151,11 @@ USER REQUEST: {user_request}"""
 
 if __name__ == "__main__":
     # image_path = "screenshot_after.png"
-    image_files = [os.path.join('bbox-images/', f) for f in os.listdir('bbox-images/') if f.endswith('.png')]
+    image_files = [
+        os.path.join("bbox-images/", f)
+        for f in os.listdir("bbox-images/")
+        if f.endswith(".png")
+    ]
     image_files = natsorted(image_files)
     # API rate limits
     image_files = image_files[:20]

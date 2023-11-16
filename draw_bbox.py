@@ -23,12 +23,13 @@ for i, bbox_coords in enumerate(bbox_list):
         #     (bbox_coords["right"], bbox_coords["bottom"]),
         # ]
         bbox = (
-            bbox_coords["left"], 
-            bbox_coords["top"], 
-            bbox_coords["right"], 
-            bbox_coords["bottom"]
+            bbox_coords["left"],
+            bbox_coords["top"],
+            bbox_coords["right"],
+            bbox_coords["bottom"],
         )
-        # draw.rectangle(bbox, outline=(255, 0, 0), width=3)
-        # img.save(os.path.join(output_dir, f"screenshot_after_bbox_{i}.png"))
-        cutout = img.crop(bbox)
-        cutout.save(os.path.join(output_dir, f"screenshot_after_bbox_{i}.png"))
+        draw.rectangle(bbox, outline=(255, 0, 0), width=3)
+        img.save(os.path.join(output_dir, f"screenshot_after_bbox_{i}.png"))
+        # try cut outs
+        # cutout = img.crop(bbox)
+        # cutout.save(os.path.join(output_dir, f"screenshot_after_bbox_{i}.png"))

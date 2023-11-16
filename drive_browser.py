@@ -45,7 +45,6 @@ class WebDriver:
             self.screen_shot_count += 1
             print(f"Screenshot saved to {path}")
 
-
     def close_browser(self):
         if self.browser:
             self.browser.close()
