@@ -1,0 +1,3 @@
+[submodule "vimium"]
+	path = vimium
+	url = git@github.com:rasdani/vimium.git
