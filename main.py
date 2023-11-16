@@ -22,8 +22,9 @@ def main():
     )
     playwright = None
     context = None
-    home_dir = os.getenv("HOME")
-    path_to_extension = os.path.join(home_dir, "git/vimium")
+    # home_dir = os.getenv("HOME")
+    # path_to_extension = os.path.join(home_dir, "git/vimium")
+    path_to_extension = "./vimium"
     args = [
         f"--disable-extensions-except={path_to_extension}",
         f"--load-extension={path_to_extension}",

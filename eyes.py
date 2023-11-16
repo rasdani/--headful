@@ -1,4 +1,5 @@
 import os
+from natsort import natsorted
 from dotenv import load_dotenv
 import base64
 import requests
@@ -132,7 +133,7 @@ USER REQUEST: {user_request}"""
     # response = result.choices[0].message.content
 
     # no batching for chat completion :(
-    for prompt in PROMPT_MESSAGES:
+    for i, prompt in enumerate(PROMPT_MESSAGES):
         params = {
             "model": "gpt-4-vision-preview",
             "temperature": 0.0,
@@ -145,8 +146,7 @@ USER REQUEST: {user_request}"""
 
         result = client.chat.completions.create(**params)
         response = result.choices[0].message.content
-        print(f"{result=}")
-        print(f"{response=}")
+        print(f"{i}: {response}")
     # breakpoint()
     return response
 
@@ -154,9 +154,9 @@ USER REQUEST: {user_request}"""
 if __name__ == "__main__":
     # image_path = "screenshot_after.png"
     image_files = [os.path.join('bbox-images/', f) for f in os.listdir('bbox-images/') if f.endswith('.png')]
-    image_files.sort()
+    image_files = natsorted(image_files)
     # API rate limits
-    image_files = image_files[:15]
+    image_files = image_files[:20]
     # image_files = image_files[:2]
     print(image_files)
     while True:
