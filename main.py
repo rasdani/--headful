@@ -2,10 +2,9 @@ import openai
 from dotenv import load_dotenv
 import os
 from playwright.sync_api import sync_playwright
-import json
 
 from drive_browser import WebDriver
-from head import function_call_request, execute_function_call
+from head import function_call_request, execute_function_call, press_f_and_screenshot
 
 
 load_dotenv()
@@ -23,6 +22,8 @@ def main():
     playwright = None
     context = None
     path_to_extension = "./vimium"
+    # home_dir = os.getenv("HOME")
+    # path_to_extension = os.path.join(home_dir, "git/vimium")
     args = [
         f"--disable-extensions-except={path_to_extension}",
         f"--load-extension={path_to_extension}",
@@ -47,6 +48,9 @@ def main():
                 break
             if user_input == "s":
                 driver.take_screenshot()
+                continue
+            if user_input == "f":
+                press_f_and_screenshot(driver) 
                 continue
             messages.append({"role": "user", "content": user_input})
             func_call = function_call_request(messages)

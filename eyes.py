@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import base64
 import requests
 from openai import OpenAI
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -20,6 +21,8 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=6))
 def see(image_path, user_request):
     base64_image = encode_image(image_path)
     message = """\
@@ -60,6 +63,9 @@ USER REQUEST: {user_request}"""
         "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
     )
     response_json = response.json()
+    if 'error' in response_json:
+        print(f"Error: {response_json['error']['message']}")
+        return None
     response_message = response_json["choices"][0]["message"]["content"]
     print(response_message)
     return response_message

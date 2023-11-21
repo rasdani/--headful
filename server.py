@@ -1,27 +1,37 @@
 ### This webserver will receive the coordinates from the vimium fork and save them in a json file
 import json
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-from PIL import Image
-from io import BytesIO
-import base64
-import os
+from flask_cors import CORS, cross_origin
 import time
+import logging
 
 
-app = Flask(__name__)
-CORS(app)  # This will enable CORS for all routes
+def run_server():
+    app = Flask(__name__)
+    # app.logger.setLevel(logging.ERROR)
+    CORS(app)  # This will enable CORS for all routes
 
+    @app.route("/bboxes", methods=["POST"])
+    # @cross_origin()
+    def handle_bbox():
+        data = request.get_json()
+        # print("Coordinates received successfully ", time.time())
+        ret = jsonify({"message": "Received data successfully"})
+        # print(data)
+        with open("coordinates.json", "w") as f:
+            json.dump(data, f)
+        return ret, 200
 
-@app.route("/", methods=["POST"])
-def handle_post():
-    data = request.get_json()
-    print("Coordinates received successfully ", time.time())
-    data_json = jsonify({"message": "Received data successfully"})
-    with open("coordinates.json", "w") as f:
-        json.dump(data, f)
-    return data_json, 200
+    @app.route("/hintString", methods=["POST"])
+    # @cross_origin()
+    def handle_hint_string():
+        data = request.get_json()
+        print(data)
+        hint_code = data.get('hintString')
+        print("Received hint code: ", hint_code)
+        return jsonify({"message": "Received hint code successfully"}), 200
 
+    app.run(port=5000)
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    run_server()

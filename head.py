@@ -18,7 +18,7 @@ GPT_MODEL = "gpt-3.5-turbo-1106"
 
 class FunctionName(Enum):
     VISIT_WEBSITE = "visit_website"
-    EXECUTE_BROWSER_ACTION = "execute_browser_action"
+    # EXECUTE_BROWSER_ACTION = "execute_browser_action"
     CLICK_WEBPAGE_ELEMENT = "click_webpage_element"
 
 
@@ -33,10 +33,10 @@ class VisitWebsiteArgs(BaseModel):
         return v
 
 
-class BrowserAction(Enum):
-    GO_BACK = "go_back"
-    GO_FORWARD = "go_forward"
-    NEW_TAB = "new_tab"
+# class BrowserAction(Enum):
+#     GO_BACK = "go_back"
+#     GO_FORWARD = "go_forward"
+#     NEW_TAB = "new_tab"
 
 
 class UserRequest(BaseModel):
@@ -52,29 +52,28 @@ class FunctionCall(BaseModel):
 def visit_website(driver, url):
     driver.navigate_to(url)
     driver.page.wait_for_load_state("networkidle")  # wait for the page to load
-    driver.page.keyboard.press("Escape")
     press_f_and_screenshot(driver)
     return driver
 
 
-def execute_browser_action(driver, action: BrowserAction):
-    page = driver.page
-    if action == BrowserAction.GO_BACK:
-        page.go_back()
-        page.wait_for_load_state("networkidle")  # wait for the page to load
-        press_f_and_screenshot(driver)
-    elif action == BrowserAction.GO_FORWARD:
-        page.go_forward()
-        page.wait_for_load_state("networkidle")  # wait for the page to load
-        press_f_and_screenshot(driver)
-    elif action == BrowserAction.NEW_TAB:
-        viewport_size = page.viewport_size
-        new_page = page.context.new_page()
-        new_page.set_viewport_size(viewport_size)
-        driver.page = new_page
-    else:
-        raise ValueError(f"Unknown action: {action.action}")
-    return driver
+# def execute_browser_action(driver, action: BrowserAction):
+#     page = driver.page
+#     if action == BrowserAction.GO_BACK:
+#         page.go_back()
+#         page.wait_for_load_state("networkidle")  # wait for the page to load
+#         press_f_and_screenshot(driver)
+#     elif action == BrowserAction.GO_FORWARD:
+#         page.go_forward()
+#         page.wait_for_load_state("networkidle")  # wait for the page to load
+#         press_f_and_screenshot(driver)
+#     elif action == BrowserAction.NEW_TAB:
+#         viewport_size = page.viewport_size
+#         new_page = page.context.new_page()
+#         new_page.set_viewport_size(viewport_size)
+#         driver.page = new_page
+#     else:
+#         raise ValueError(f"Unknown action: {action.action}")
+#     return driver
 
 
 def click_webpage_element(user_request):
@@ -89,6 +88,7 @@ def click_webpage_element(user_request):
 
 
 def press_f_and_screenshot(driver):
+    driver.page.keyboard.press("Escape")
     page = driver.page
     # page.screenshot(path="screenshot_before.png", full_page=True)
     driver.take_screenshot(path="screenshot_before.png")
@@ -110,6 +110,12 @@ def execute_function_call(driver, function_call: FunctionCall):
     elif function_call.function_name == FunctionName.CLICK_WEBPAGE_ELEMENT:
         user_request = function_call.arguments.user_request
         response = click_webpage_element(user_request)
+        confirmation = input(f"Confirm: {response}? (y/n) ")
+        if confirmation == "y":
+            driver.enter_text(response)
+            press_f_and_screenshot(driver)
+        else:
+            pass
     else:
         raise ValueError(
             f"Error: function {function_call.function_name} does not exist"
