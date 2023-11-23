@@ -7,7 +7,7 @@ Use a vision/UI model (currently GPT-V) to recognize website elements 👁️.
 
 Use Whisper and GPT function calling to listen and understand commands 🧏.
  
-Use playwright to direct your browser 🕹️.
+Use Playwright to direct your browser 🕹️.
 
 
  ## Setup
@@ -18,11 +18,12 @@ Use playwright to direct your browser 🕹️.
 - Run `python main.py` in a different terminal.
 
 ## Breakdown
-GPT function calling translates user request into URL to visit.
-Hitting 'f' fires up Vimium and highlights clickable elements on the page.
-The Vimium fork renders and sends bounding box coordinated of clickable elements to a Flask server.
-Even clicking via Vimimum key bindings fails seldomly. Bounding boxes can be use to click (into the middle of) UI elements.
-A screenshot is taken an sent to a GPT-Vision model together with the user request.
+- GPT function calling and `instructor` translate user request into URL to visit.
+- Hitting 'f' fires up a Vimium fork and highlights clickable elements on the page.
+- The Vimium fork renders and sends bounding box coordinates of clickable elements to a Flask server.
+    - Even clicking via Vimimum key bindings fails seldomly. Bounding boxes can be used to simulate a click into the middle of UI elements.
+- A screenshot is taken and sent to GPT4-Vision together with the user request.
+- GPT4-Vision selects webpage element and user can confirm click.
 
 
 In doing:
@@ -36,17 +37,20 @@ Check out the 'experiments' branch for a bunch of things I tried out:
 - Adept's [Fuyu-8B](https://huggingface.co/adept/fuyu-8b) to detect UI element bounding box for user request.
     - See [HF space](https://huggingface.co/spaces/adept/fuyu-8b-demo/blob/beaba43434072de08478e7a1f90e621ece81aa93/app.py#L67) for how to properly prompt for bounding boxes. Works primarly for written text, so more akin to OCR.
     - Tried hard coding `<bbox>` tags into their transformers class to force to return bounding boxes for non text UI elements. Got bounding boxes for any request, but they were not accurate.
-- (finetuned) Donot
 - RICO dataset
-- RefExp
-- pix2struct-refexp
+- this UI detection task is called RefExp
+- pix2struct-refexp [base]() [large]()
     - more lightweight than Vision LLMs/large multimodal models
-    - finetuning this should be easier
-- GPT-Vision dropped
+    - finetuning/inference should be easier
+- GPT4-Vision dropped
     - hit or miss with Vimium labels
     - tried passing before and after screenshot in case labels occlude UI elements
     - tried bounding boxes as visual aid
     - mobile user agent for slimmed down websites
-    - tried single highlighted UI element per image and batched request for simple yes/no classification, turns out ChatCompletion doesn't support batching (without workarounds)!
+    - tried single highlighted UI element per image and batched request for simple yes/no classification, turns out ChatCompletion doesn't support batching ([without workarounds]())!
     - tried cutouts of single UI elements
     - some of these are quite slow and all are still hit or miss
+
+- One could try one of the more recent large OSS multimodal models
+    - e.g. Baklava, Cog
+    - finetune them with your own captioned data

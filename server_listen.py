@@ -5,9 +5,32 @@ from flask_cors import CORS
 import pyaudio
 import wave
 import time
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Adjust CORS according to your needs
+
+client = OpenAI()
+
+def add_to_dataset(transcript):
+    caption = transcript.text
+    with open("coordinates.json", "r") as f:
+        coordinates = json.load(f)
+    
+    with open("hint_string.json", "r") as f:
+        hint_string = json.load(f)
+    
+
+def transcribe(file_path):
+    audio_file= open(file_path, "rb")
+    transcript = client.audio.transcriptions.create(
+    model="whisper-1", 
+    file=audio_file
+    )
+    return transcript   
 
 class RecordingThread(threading.Thread):
     def __init__(self, filename, max_duration):
@@ -44,7 +67,10 @@ def handle_bbox():
     print(data)
     with open("coordinates.json", "w") as f:
         json.dump(data, f)
-    
+
+    with open('vimium_triggered.txt', 'w') as f:
+        f.write('True')
+ 
     if recording_thread is None or not recording_thread.is_alive():
         recording_thread = RecordingThread('browser_talk.wav', 30)  # 60 seconds max duration
         recording_thread.start()
@@ -55,13 +81,15 @@ def handle_bbox():
 def handle_hint_string():
     global recording_thread
     data = request.get_json()
-    hint_code = data.get('hintString')
+    hint_string = data.get('hintString')
+    with open("hint_string.json", "w") as f:
+        json.dump(hint_string, f)
     
     if recording_thread and recording_thread.is_alive():
         recording_thread.do_record = False
         recording_thread.join(5)  # 5 seconds timeout
 
-    return jsonify({"message": "Received hint code successfully", "hintCode": hint_code}), 200
+    return jsonify({"message": "Received hint code successfully", "hintCode": hint_string}), 200
 
 def test_recording(app):
     with app.test_client() as client:
@@ -78,4 +106,7 @@ def test_recording(app):
 
 if __name__ == "__main__":
     # app.run(port=5000, threaded=True)
-    test_recording(app)
+    # test_recording(app)
+    tr = transcribe("browser_talk.wav")
+    print(tr)
+    breakpoint()
