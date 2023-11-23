@@ -43,23 +43,17 @@ def main():
             sleep(2)
             print(f"{context.pages}")
             # page.wait_for_load_state("networkidle")
-            while not page.wait_for_event("framenavigated"):
-                sleep(2)
-                print("WAITING...")
-
-            screenshot_path = f"{screenshot_dir}/{time.time()}.png"
-            driver.take_screenshot(screenshot_path)
-            print("SCREENSHOT TAKEN")
+            navigated = page.wait_for_event("framenavigated")
+            page.wait_for_load_state("networkidle")
+            print(f"{navigated=}")
+            if navigated:
+                screenshot_path = f"{screenshot_dir}/current_screenshot.png"
+                driver.take_screenshot(screenshot_path)
+                print("SCREENSHOT TAKEN")
 
             # page.on("framenavigated", lambda event: take_screenshot_on_navigation(page, event, screenshot_dir))
 
 
-            # with open('vimium_triggered.txt', 'r') as f:
-            #     flag = f.read().strip()
-            # if flag == 'True':
-            #     driver.take_screenshot(f"{screenshot_dir}")
-            #     with open('vimium_triggered.txt', 'w') as f:
-            #         f.write('False')    # Reset the flag
             # user_input = input("Enter your message: ")
             # if user_input == "x":
             #     break

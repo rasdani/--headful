@@ -68,9 +68,6 @@ def handle_bbox():
     with open("coordinates.json", "w") as f:
         json.dump(data, f)
 
-    with open('vimium_triggered.txt', 'w') as f:
-        f.write('True')
- 
     if recording_thread is None or not recording_thread.is_alive():
         recording_thread = RecordingThread('browser_talk.wav', 30)  # 60 seconds max duration
         recording_thread.start()
