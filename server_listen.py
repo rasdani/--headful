@@ -1,3 +1,4 @@
+import os
 import json
 import threading
 from flask import Flask, request, jsonify
@@ -7,6 +8,7 @@ import wave
 import time
 from openai import OpenAI
 from dotenv import load_dotenv
+import shutil
 
 load_dotenv()
 
@@ -15,6 +17,14 @@ CORS(app)  # Adjust CORS according to your needs
 
 client = OpenAI()
 
+def copy_current_screenshot():
+    screenshot_dir = f"browser-recordings/screenshots"
+    os.makedirs(screenshot_dir, exist_ok=True)
+    current_screenshot_path = "browser-recordings/current_screenshot.png"
+    timestamp = str(time.time())
+    copied_screenshot_path = f"{screenshot_dir}/{timestamp}.png"
+    shutil.copy2(current_screenshot_path, copied_screenshot_path)
+
 def add_to_dataset(transcript):
     caption = transcript.text
     with open("coordinates.json", "r") as f:
@@ -22,6 +32,17 @@ def add_to_dataset(transcript):
     
     with open("hint_string.json", "r") as f:
         hint_string = json.load(f)
+    
+    data = {
+        "coordinates": coordinates,
+        "hint_string": hint_string,
+        # "screenshot_path": copied_screenshot_path
+    }
+    with open("dataset.jsonl", "a") as f:
+        json.dump({timestamp: data}, f)
+        f.write('\n')
+
+
     
 
 def transcribe(file_path):
@@ -62,9 +83,10 @@ recording_thread = None
 
 @app.route("/bboxes", methods=["POST"])
 def handle_bbox():
+    copy_current_screenshot()
     global recording_thread
     data = request.get_json()
-    print(data)
+    # print(data)
     with open("coordinates.json", "w") as f:
         json.dump(data, f)
 
@@ -102,8 +124,8 @@ def test_recording(app):
 
 
 if __name__ == "__main__":
-    # app.run(port=5000, threaded=True)
+    app.run(port=5000, threaded=True)
     # test_recording(app)
-    tr = transcribe("browser_talk.wav")
-    print(tr)
-    breakpoint()
+    # tr = transcribe("browser_talk.wav")
+    # print(tr)
+    # breakpoint()
