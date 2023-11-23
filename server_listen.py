@@ -17,16 +17,24 @@ CORS(app)  # Adjust CORS according to your needs
 
 client = OpenAI()
 
+counter = 0
+
 def copy_current_screenshot():
+    global counter
     screenshot_dir = f"browser-recordings/screenshots"
     os.makedirs(screenshot_dir, exist_ok=True)
     current_screenshot_path = "browser-recordings/current_screenshot.png"
-    timestamp = str(time.time())
-    copied_screenshot_path = f"{screenshot_dir}/{timestamp}.png"
+    # timestamp = str(time.time())
+    # copied_screenshot_path = f"{screenshot_dir}/{timestamp}.png"
+    copied_screenshot_path = f"{screenshot_dir}/{counter}.png"
     shutil.copy2(current_screenshot_path, copied_screenshot_path)
 
 def add_to_dataset(transcript):
-    caption = transcript.text
+    global counter
+    # caption = transcript.text
+    caption = "test caption"
+    screenshot_dir = f"browser-recordings/screenshots"
+    copied_screenshot_path = f"{screenshot_dir}/{counter}.png"
     with open("coordinates.json", "r") as f:
         coordinates = json.load(f)
     
@@ -36,11 +44,13 @@ def add_to_dataset(transcript):
     data = {
         "coordinates": coordinates,
         "hint_string": hint_string,
-        # "screenshot_path": copied_screenshot_path
+        "screenshot_path": copied_screenshot_path
     }
     with open("dataset.jsonl", "a") as f:
-        json.dump({timestamp: data}, f)
+        json.dump({counter: data}, f)
         f.write('\n')
+
+    counter =+ 1
 
 
     
@@ -107,7 +117,8 @@ def handle_hint_string():
     if recording_thread and recording_thread.is_alive():
         recording_thread.do_record = False
         recording_thread.join(5)  # 5 seconds timeout
-
+    
+    add_to_dataset("test caption")
     return jsonify({"message": "Received hint code successfully", "hintCode": hint_string}), 200
 
 def test_recording(app):

@@ -6,6 +6,7 @@ from playwright.sync_api import sync_playwright
 
 from drive_browser import WebDriver
 
+
 def setup():
     # screenshot_dir = f"browser-recordings/{time.time()}/screenshots"
     screenshot_dir = f"browser-recordings/"
