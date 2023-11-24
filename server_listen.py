@@ -51,7 +51,7 @@ def add_to_dataset(transcript):
         json.dump({counter: data}, f)
         f.write('\n')
 
-    counter =+ 1
+    counter += 1
 
 
     
