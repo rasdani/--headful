@@ -31,8 +31,8 @@ def copy_current_screenshot():
 
 def add_to_dataset(transcript):
     global counter
-    # caption = transcript.text
-    caption = "test caption"
+    caption = transcript.text
+    # caption = "test caption"
     screenshot_dir = f"browser-recordings/screenshots"
     copied_screenshot_path = f"{screenshot_dir}/{counter}.png"
     with open("coordinates.json", "r") as f:
@@ -44,7 +44,8 @@ def add_to_dataset(transcript):
     data = {
         "coordinates": coordinates,
         "hint_string": hint_string,
-        "screenshot_path": copied_screenshot_path
+        "screenshot_path": copied_screenshot_path,
+        "caption": caption
     }
     with open("dataset.jsonl", "a") as f:
         json.dump({counter: data}, f)
@@ -118,7 +119,8 @@ def handle_hint_string():
         recording_thread.do_record = False
         recording_thread.join(5)  # 5 seconds timeout
     
-    add_to_dataset("test caption")
+    transscript = transcribe("browser_talk.wav")
+    add_to_dataset(transscript)
     return jsonify({"message": "Received hint code successfully", "hintCode": hint_string}), 200
 
 def test_recording(app):
